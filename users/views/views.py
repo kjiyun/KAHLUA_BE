@@ -5,14 +5,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import serializers
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, GenericAPIView
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
 from users.mixins import ApiAuthMixin, ApiAllowAnyMixin
 from users.models import User
-from users.serializers import UserSerializer
+from users.serializers import UserSerializer, UserLoginSerializer
 
 
 #serializer에 partial=True를 주기위한 Mixin
@@ -54,3 +54,33 @@ class SignUpView(SetPartialMixin, CreateAPIView):
         return Response({
             'status': 'Success',
         }, status=status.HTTP_200_OK)
+    
+
+class LoginView(GenericAPIView):
+    serializer_class = UserLoginSerializer
+    permission_class = [
+        AllowAny,
+    ]
+
+    @swagger_auto_schema(
+        operation_id='로그인'
+    )
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid(raise_exception=True):
+            if serializer.validated_data['email'] == 'None':   # email을 입력받지 않은 경우
+                return Response({
+                    'status': 'error',
+                    'message': '이메일을 입력해주세요.',
+                    'code': 404,
+                }, status=status.HTTP_404_NOT_FOUND)
+            response = {
+                'access': serializer.validated_data['access'],
+                'refresh': serializer.validated_data['refresh'],
+                'nickname': serializer.validated_data['nickname']
+            }
+            return Response({
+                'status': 'success',
+                'data': response,
+            }, status=status.HTTP_200_OK)
