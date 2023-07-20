@@ -12,5 +12,7 @@ urlpatterns = [
     path('activate/<str:uid>/<str:token>',
          email_auth.UserActivateView.as_view(), name='activate'),
     path('login/', views.LoginView.as_view(), name='login'),
+    path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('profile/', views.UserProfileView.as_view(), name='detail'),
     path('api-token-auth/', obtain_auth_token),
 ]

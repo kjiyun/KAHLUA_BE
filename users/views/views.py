@@ -2,18 +2,20 @@ from functools import partial
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.views import APIView, View
 from rest_framework import serializers
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.generics import CreateAPIView, GenericAPIView
+from rest_framework.generics import CreateAPIView, GenericAPIView, RetrieveUpdateAPIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
 from users.mixins import ApiAuthMixin, ApiAllowAnyMixin
 from users.models import User
-from users.serializers import UserSerializer, UserLoginSerializer
+from users.serializers import UserSerializer, UserLoginSerializer, ProfileSerializer
 
+from django.http import JsonResponse
 
 #serializer에 partial=True를 주기위한 Mixin
 class SetPartialMixin:
@@ -84,3 +86,29 @@ class LoginView(GenericAPIView):
                 'status': 'success',
                 'data': response,
             }, status=status.HTTP_200_OK)
+        
+
+class LogoutView(GenericAPIView):
+    
+    permission_classes = (IsAuthenticated,) #인증된 요청에 한해서 뷰 호출 허용(로그인 되어있어야만 접근 허용)
+    serializer_class = UserLoginSerializer
+
+    def post(self, request):
+        try: #refresh 토큰을 블랙리스트에 저장
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(status=status.HTTP_205_RESET_CONTENT) #사용자에게 이 요청을 보낸 문서를 재설정하도록
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileView(RetrieveUpdateAPIView): #조회/수정
+
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ProfileSerializer 
+    
+    
+    def get_object(self): #user 객체의 데이터 가져옴
+        return self.request.user
+    

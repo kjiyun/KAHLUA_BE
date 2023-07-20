@@ -97,3 +97,23 @@ class UserLoginSerializer(serializers.ModelSerializer):
             'nickname': user.nickname
         }
         return data
+    
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'password',
+            'nickname',
+        )
+    
+'''
+class UserDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = {
+            'email',
+            'password',
+            'nickname',
+        }
+'''
