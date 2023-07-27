@@ -58,7 +58,7 @@ class SignUpView(SetPartialMixin, CreateAPIView):
 
 class LoginView(GenericAPIView):
     serializer_class = UserLoginSerializer
-    permission_class = [
+    permission_classes = [
         AllowAny,
     ]
 
